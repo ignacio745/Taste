@@ -23,8 +23,7 @@ TOKENS
   ident  = letter {letter | digit}.
   number = digit {digit}.
 
-COMMENTS FROM "/*" TO "*/" NESTED
-COMMENTS FROM "//" TO lf
+COMMENTS FROM "#" TO lf
 
 IGNORE cr + tab
 
@@ -73,7 +72,7 @@ MulOp<out Op op>
   ).
 /*------------------------------------------------------------------------*/
 ProcDecl                 (. string name; Obj obj; int adr; .)
-= "void"
+= "def"
   Ident<out name>        (. obj = tab.NewObj(name, proc, None); obj.adr = gen.pc;
                             if (name == "Main") gen.progStart = gen.pc; 
                             tab.OpenScope(); .)
@@ -82,7 +81,18 @@ ProcDecl                 (. string name; Obj obj; int adr; .)
   { '\n' | VarDeclorAssign | Stat }
   '}'                    (. gen.Emit(Op.LEAVE); gen.Emit(Op.RET);
                             gen.Patch(adr, tab.topScope.nextAdr);
-                            tab.CloseScope(); .).
+                            tab.CloseScope(); .)
+    |
+    "if" "__name__" "==" "'__main__'" (.obj = tab.NewObj("main", proc, None); obj.adr = gen.pc; 
+                                    gen.progStart = gen.pc; 
+                            tab.OpenScope(); .)
+    '{'                    (. gen.Emit(Op.ENTER, 0); adr = gen.pc - 2; .)
+  { '\n' | VarDeclorAssign | Stat }
+  '}'                    (. gen.Emit(Op.LEAVE); gen.Emit(Op.RET);
+                            gen.Patch(adr, tab.topScope.nextAdr);
+                            tab.CloseScope(); .)
+
+    .
 /*------------------------------------------------------------------------*/
 RelOp<out Op op>
 =                        (. op = Op.EQU; .)
@@ -99,12 +109,12 @@ SimExpr<out int type>    (. int type1; Op op; .)
                             gen.Emit(op); .)
 	}.
 /*------------------------------------------------------------------------*/
-Stat                     (. int type; string name; Obj obj;
+Stat                     (. int type = None; string name; Obj obj;
                             int adr, adr2, loopstart; .)
 = VarDeclorAssign
 
 | "if" 
-	['('] Expr<out type> [')'] (. if (type != boolean) SemErr("boolean type expected");
+	( Expr<out type> | ['('] Expr<out type> [')']) (. if (type != boolean) SemErr("boolean type expected");
 													  gen.Emit(Op.FJMP, 0); adr = gen.pc - 2; .)
 	['\n'] Stat 
 	[ ['\n'] "else"   ["\n"]            (. gen.Emit(Op.JMP, 0); adr2 = gen.pc - 2;
@@ -125,18 +135,17 @@ Stat                     (. int type; string name; Obj obj;
 													  if (obj.level == 0) gen.Emit(Op.STOG, obj.adr);
 													  else gen.Emit(Op.STO, obj.adr); .)
 
-| "write" 
-	Expr<out type> '\n'     (. if (type != integer) SemErr("integer type expected");
+| "print(" 
+	Expr<out type>")" '\n'     (. if (type != integer) SemErr("integer type expected");
 												    gen.Emit(Op.WRITE); .)
 
 | '{' { '\n' | Stat | VarDeclorAssign } '}' .
 /*------------------------------------------------------------------------*/
-Taste                    (. string name; .)
-= "program"
-  Ident<out name>        (. tab.OpenScope(); .)
-  '{'
+Taste
+= (. tab.OpenScope(); .)
+  
   {'\n' | VarDeclorAssign | ProcDecl }
-  '}'                    (. tab.CloseScope();
+                      (. tab.CloseScope();
                             if (gen.progStart == -1) SemErr("main function never defined");
                             .).
 /*------------------------------------------------------------------------*/
@@ -158,13 +167,14 @@ VarDecl<.List<string> names.>                  (. int type; .)
 = Type<out type>        (. foreach(var name in names){tab.NewObj(name, var, type);} .)
 .
 /*------------------------------------------------------------------------*/
-Assign<string name>				(. int type; Obj obj; .)
+Assign<string name>				(. int type = None; Obj obj; .)
 =											(. obj = tab.Find(name); .)
 (	"="										
 											(. if (obj.kind != var) SemErr("cannot assign to procedure"); .)
-	(Expr<out type> | "input()" (. gen.Emit(Op.TECLADO); type = integer; if (type != obj.type) SemErr("incompatible types");
+	(Expr<out type> | "input()" (. gen.Emit(Op.TECLADO); type = integer; .)) 
+											   (. if (type != obj.type) SemErr("incompatible types");
 													  if (obj.level == 0) gen.Emit(Op.STOG, obj.adr);
-													  else gen.Emit(Op.STO, obj.adr);.)) 
+													  else gen.Emit(Op.STO, obj.adr); .)
 
 	| '(' ')'						         (. if (obj.kind != proc) SemErr("object is not a procedure");
 												  	gen.Emit(Op.CALL, obj.adr); .)
