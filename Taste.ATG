@@ -82,15 +82,6 @@ ProcDecl                 (. string name; Obj obj; int adr; .)
   '}'                    (. gen.Emit(Op.LEAVE); gen.Emit(Op.RET);
                             gen.Patch(adr, tab.topScope.nextAdr);
                             tab.CloseScope(); .)
-    |
-    "if" "__name__" "==" "'__main__'" (.obj = tab.NewObj("main", proc, None); obj.adr = gen.pc; 
-                                    gen.progStart = gen.pc; 
-                            tab.OpenScope(); .)
-    '{'                    (. gen.Emit(Op.ENTER, 0); adr = gen.pc - 2; .)
-  { '\n' | VarDeclorAssign | Stat }
-  '}'                    (. gen.Emit(Op.LEAVE); gen.Emit(Op.RET);
-                            gen.Patch(adr, tab.topScope.nextAdr);
-                            tab.CloseScope(); .)
 
     .
 /*------------------------------------------------------------------------*/
@@ -142,12 +133,20 @@ Stat                     (. int type = None; string name; Obj obj;
 | '{' { '\n' | Stat | VarDeclorAssign } '}' .
 /*------------------------------------------------------------------------*/
 Taste
-= (. tab.OpenScope(); .)
+= (. tab.OpenScope(); Obj obj; int adr;.)
   
   {'\n' | VarDeclorAssign | ProcDecl }
-                      (. tab.CloseScope();
-                            if (gen.progStart == -1) SemErr("main function never defined");
-                            .).
+
+    "if" "__name__" "==" "'__main__'" (.obj = tab.NewObj("main", proc, None); obj.adr = gen.pc; 
+                                    gen.progStart = gen.pc; 
+                            tab.OpenScope(); .)
+    '{'                    (. gen.Emit(Op.ENTER, 0); adr = gen.pc - 2; .)
+  { '\n' | VarDeclorAssign | Stat }
+  '}'                    (. gen.Emit(Op.LEAVE); gen.Emit(Op.RET);
+                            gen.Patch(adr, tab.topScope.nextAdr);
+                            tab.CloseScope(); .)
+                      (. tab.CloseScope(); .)
+                             {'\n'} (. gen.Emit(Op.HALT); .) .
 /*------------------------------------------------------------------------*/
 Term<out int type>       (. int type1; Op op; .)
 = Factor<out type>

@@ -1,34 +1,35 @@
-	i: int
+i: int
 	
-	def Foo() {
-		a; b: int
-		max: int
-		a = input() 
-		b = input()
-		if a > b
-		{
-		max = a
-		}
-		else
-		{ 
-		max = b
-		}
-		print(max)
+def Foo() {
+	a; b: int
+	max: int
+	a = input() 
+	b = input()
+	if a > b
+	{
+	max = a
 	}
-
-	def SumUp() {
-		sum: int
-		sum = 0
-		while i > 0 { 
-		sum = sum + i 
-		i = i - 1 
-		}print(sum)
+	else
+	{ 
+	max = b
 	}
+	print(max)
+}
 
-	if __name__ == '__main__' {
+def SumUp() {
+	sum: int
+	sum = 0
+	while i > 0 { 
+	sum = sum + i 
+	i = i - 1 
+	}
+	print(sum)
+}
+
+if __name__ == '__main__' {
+	i = input()
+	while i > 0 {
+		SumUp()
 		i = input()
-		while i > 0 {
-			SumUp()
-			i = input()
-		}
 	}
+}
