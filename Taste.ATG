@@ -105,7 +105,7 @@ Stat                     (. int type = None; string name; Obj obj;
 = VarDeclorAssign
 
 | "if" 
-	( Expr<out type> | ['('] Expr<out type> [')']) (. if (type != boolean) SemErr("boolean type expected");
+	( Expr<out type> | '(' Expr<out type> ')') (. if (type != boolean) SemErr("boolean type expected");
 													  gen.Emit(Op.FJMP, 0); adr = gen.pc - 2; .)
 	['\n'] Stat 
 	[ ['\n'] "else"   ["\n"]            (. gen.Emit(Op.JMP, 0); adr2 = gen.pc - 2;
@@ -146,7 +146,7 @@ Taste
                             gen.Patch(adr, tab.topScope.nextAdr);
                             tab.CloseScope(); .)
                       (. tab.CloseScope(); .)
-                             {'\n'} (. gen.Emit(Op.HALT); .) .
+                             {'\n'} .
 /*------------------------------------------------------------------------*/
 Term<out int type>       (. int type1; Op op; .)
 = Factor<out type>
