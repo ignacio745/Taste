@@ -203,8 +203,8 @@ public class UTF8Buffer: Buffer {
 public class Scanner {
 	const char EOL = '\n';
 	const int eofSym = 0; /* pdt */
-	const int maxT = 31;
-	const int noSym = 31;
+	const int maxT = 30;
+	const int noSym = 30;
 
 
 	public Buffer buffer; // scanner buffer
@@ -334,9 +334,8 @@ public class Scanner {
 			case "if": t.kind = 18; break;
 			case "else": t.kind = 19; break;
 			case "while": t.kind = 20; break;
-			case "read": t.kind = 21; break;
-			case "int": t.kind = 25; break;
-			case "bool": t.kind = 26; break;
+			case "int": t.kind = 24; break;
+			case "bool": t.kind = 25; break;
 			default: break;
 		}
 	}
@@ -397,7 +396,7 @@ public class Scanner {
 			case 14:
 				{t.kind = 17; break;}
 			case 15:
-				{t.kind = 22; break;}
+				{t.kind = 21; break;}
 			case 16:
 				if (ch == '_') {AddCh(); goto case 17;}
 				else {goto case 0;}
@@ -420,7 +419,7 @@ public class Scanner {
 				if (ch == '_') {AddCh(); goto case 23;}
 				else {goto case 0;}
 			case 23:
-				{t.kind = 23; break;}
+				{t.kind = 22; break;}
 			case 24:
 				if (ch == '_') {AddCh(); goto case 25;}
 				else {goto case 0;}
@@ -449,20 +448,20 @@ public class Scanner {
 				if (ch == 39) {AddCh(); goto case 33;}
 				else {goto case 0;}
 			case 33:
-				{t.kind = 24; break;}
+				{t.kind = 23; break;}
 			case 34:
 				if (ch == ')') {AddCh(); goto case 35;}
 				else {goto case 0;}
 			case 35:
-				{t.kind = 28; break;}
+				{t.kind = 27; break;}
 			case 36:
-				{t.kind = 29; break;}
+				{t.kind = 28; break;}
 			case 37:
-				{t.kind = 30; break;}
+				{t.kind = 29; break;}
 			case 38:
-				recEnd = pos; recKind = 27;
+				recEnd = pos; recKind = 26;
 				if (ch == '=') {AddCh(); goto case 12;}
-				else {t.kind = 27; break;}
+				else {t.kind = 26; break;}
 			case 39:
 				recEnd = pos; recKind = 1;
 				if (ch >= '0' && ch <= '9' || ch >= 'A' && ch <= 'Z' || ch >= 'a' && ch <= 'q' || ch >= 's' && ch <= 'z') {AddCh(); goto case 1;}

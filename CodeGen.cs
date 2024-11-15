@@ -6,7 +6,7 @@ namespace Taste {
 public enum Op { // opcodes
 	ADD, SUB, MUL, DIV, EQU, LSS, GTR, NEG,
 	LOAD, LOADG, STO, STOG, CONST,
-	CALL, RET, ENTER, LEAVE, JMP, FJMP, READ, WRITE, TECLADO
+	CALL, RET, ENTER, LEAVE, JMP, FJMP, WRITE, TECLADO
 }
 
 public class CodeGenerator {
@@ -14,7 +14,7 @@ public class CodeGenerator {
 	string[] opcode =
 	  {"ADD  ", "SUB  ", "MUL  ", "DIV  ", "EQU  ", "LSS  ", "GTR  ", "NEG  ",
 	   "LOAD ", "LOADG", "STO  ", "STOG ", "CONST", "CALL ", "RET  ", "ENTER",
-	   "LEAVE", "JMP  ", "FJMP ", "READ ", "WRITE", "TECLADO"};
+	   "LEAVE", "JMP  ", "FJMP ", "WRITE", "TECLADO"};
 
 	public int progStart;	// address of first instruction of main program
 	public int pc;				// program counter
@@ -60,7 +60,7 @@ public class CodeGenerator {
                 Console.WriteLine(Next2()); break;
 				case Op.ADD: case Op.SUB: case Op.MUL: case Op.DIV: case Op.NEG:
 				case Op.EQU: case Op.LSS: case Op.GTR: case Op.RET: case Op.LEAVE: 
-				case Op.READ: case Op.WRITE:
+				case Op.WRITE:
 						break;  Console.WriteLine(); break;
 			}
 		}
@@ -102,10 +102,10 @@ public class CodeGenerator {
 		return n * sign;
 	}
 	
-	public void Interpret (string data) { 
+	public void Interpret () { 
 		int val;
 		try {
-			FileStream s = new FileStream(data, FileMode.Open);
+			//FileStream s = new FileStream(data, FileMode.Open);
 				Console.WriteLine();
 				pc = progStart; stack[0] = 0; top = 1; bp = 0;
 			for (;;) {
@@ -125,7 +125,6 @@ public class CodeGenerator {
 					case Op.GTR:   Push(Int(Pop()<Pop())); break;
 					case Op.JMP:   pc = Next2(); break;
 					case Op.FJMP:  val = Next2(); if (Pop()==0) pc = val; break;
-					case Op.READ:  val = ReadInt(s); Push(val); break;
 					case Op.WRITE: Console.WriteLine(Pop()); break;
 					case Op.CALL:  Push(pc+2); pc = Next2(); break;
 					case Op.RET:   pc = Pop(); if (pc == 0) return; break;
@@ -136,7 +135,7 @@ public class CodeGenerator {
 				}
 			}
 		} catch (IOException) {
-			Console.WriteLine("--- Error accessing file {0}", data);
+			Console.WriteLine("--- Error accessing file {0}");
 			System.Environment.Exit(0);
 		}
 	}
